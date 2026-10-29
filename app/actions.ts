@@ -5,24 +5,36 @@ import { revalidatePath } from "next/cache";
 import { api, API } from "./api";
 export async function login(form: FormData) {
   let data;
+  let failure = "";
+  const email = String(form.get("email") || "").trim().toLowerCase();
+  const password = String(form.get("password") || "");
+  if (!email || !password) redirect("/login?error=Enter+your+email+and+password");
   try {
-    const response = await fetch(`${API}/auth/login`, {
+    const response = await fetch(API + "/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: form.get("email"),
-        password: form.get("password"),
-      }),
+      body: JSON.stringify({ email, password }),
       cache: "no-store",
       signal: AbortSignal.timeout(15000),
     });
-    data = await response.json();
-    if (!response.ok) data = null;
+    data = await response.json().catch(() => null);
+    if (!response.ok) {
+      failure = response.status === 401
+        ? "Incorrect email or password, or your account is disabled. Use your administrator email and current password."
+        : response.status === 429
+          ? "Too many sign-in attempts. Please wait one minute and try again."
+          : response.status === 400
+            ? "Check your email format and enter an 8–72 character password."
+            : "The backend could not complete sign-in. Please try again shortly.";
+    } else if (!data?.accessToken || !data?.user) {
+      failure = "The backend returned an invalid sign-in response.";
+    } else if (!["ADMIN", "SUPER_ADMIN"].includes(data.user.role)) {
+      failure = "This account does not have administrator access. Sign in with an Admin or Super Admin account.";
+    }
   } catch {
-    redirect("/login?error=Cannot+reach+the+backend");
+    failure = "Cannot connect to the backend. Check that the Campus Drop backend container is running on port 4000.";
   }
-  if (!data || !["ADMIN", "SUPER_ADMIN"].includes(data.user?.role))
-    redirect("/login?error=Administrator+sign-in+required");
+  if (failure) redirect("/login?error=" + encodeURIComponent(failure));
   (await cookies()).set("campus_admin_token", data.accessToken, {
     httpOnly: true,
     sameSite: "strict",
