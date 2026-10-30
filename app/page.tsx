@@ -35,7 +35,7 @@ const money = (n: number) =>
   );
 const mediaSource = (value?: string) =>
   value?.startsWith("/")
-    ? `${process.env.BACKEND_URL || "http://localhost:4000/v1"}`.replace(/\/v1$/, "") + value
+    ? `${process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || "http://localhost:4000/v1"}`.replace(/\/v1$/, "") + value
     : value;
 type TableColumn = { label: string; cell: (row: Row) => ReactNode };
 const dateTime = (value?: string) => value ? new Date(value).toLocaleString("en-IN") : "—";
