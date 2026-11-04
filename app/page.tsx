@@ -1,3 +1,5 @@
+import Image from "next/image";
+import { unstable_rethrow } from "next/navigation";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { api } from "./api";
@@ -49,7 +51,7 @@ function carouselList(rows: Row[]) {
 function tableColumns(tab: string): TableColumn[] {
   const status = (row: Row) => <span className="badge">{row.approvalStatus || row.status || (row.active === undefined ? "Recorded" : row.active ? "ACTIVE" : "HIDDEN")}</span>;
   if (tab === "products") return [
-    { label: "Product", cell: (row) => <div className="record-cell">{row.image && <img className="table-image" src={mediaSource(row.image)} alt="" />}<div><strong>{row.name}</strong><small>{row.id}</small></div></div> },
+    { label: "Product", cell: (row) => <div className="record-cell">{row.image && <Image className="table-image" src={mediaSource(row.image)!} alt="" width={44} height={44} unoptimized />}<div><strong>{row.name}</strong><small>{row.id}</small></div></div> },
     { label: "Vendor", cell: (row) => row.vendor?.name || row.vendorId },
     { label: "Category", cell: (row) => row.category?.name || "Uncategorised" },
     { label: "Price", cell: (row) => money(row.pricePaise) },
@@ -222,6 +224,7 @@ export default async function Dashboard({
     if (tab === "orders" && params.order)
       detail = await api(`/orders/${encodeURIComponent(params.order)}`);
   } catch (e) {
+    unstable_rethrow(e);
     error = e instanceof Error ? e.message : "Unable to load data";
   }
   const title = sections.find((s) => s[0] === tab)![1];
@@ -415,7 +418,7 @@ export default async function Dashboard({
               <label className="carousel-dropzone"><span>Choose carousel images</span><small>JPG, PNG or WEBP · 16:9 recommended · maximum 10 active images</small><input name="files" type="file" accept="image/png,image/jpeg,image/webp" multiple required /></label>
               <button className="create-button">Upload images</button>
             </form>
-            <div className="carousel-grid">{carouselImages.map((url, index) => <article className="carousel-card" key={url}><img src={mediaSource(url)} alt={`Carousel image ${index + 1}`} /><div><strong>Slide {index + 1}</strong><form action={mutate}><Hidden action="setting" /><input type="hidden" name="key" value="carouselImages" /><input type="hidden" name="value" value={JSON.stringify(carouselImages.filter((_, current) => current !== index))} /><button className="secondary danger">Remove</button></form></div></article>)}</div>
+            <div className="carousel-grid">{carouselImages.map((url, index) => <article className="carousel-card" key={url}><Image src={mediaSource(url)!} alt={`Carousel image ${index + 1}`} width={640} height={360} unoptimized style={{ height: "auto" }} /><div><strong>Slide {index + 1}</strong><form action={mutate}><Hidden action="setting" /><input type="hidden" name="key" value="carouselImages" /><input type="hidden" name="value" value={JSON.stringify(carouselImages.filter((_, current) => current !== index))} /><button className="secondary danger">Remove</button></form></div></article>)}</div>
             {!carouselImages.length && <p className="empty-state">No carousel images have been published yet.</p>}
           </section>
         )}
@@ -712,9 +715,3 @@ export default async function Dashboard({
     </div>
   );
 }
-
-
-
-
-
-

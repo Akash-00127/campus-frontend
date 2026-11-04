@@ -15,12 +15,13 @@ export async function api(path: string, init: RequestInit = {}) {
     signal: AbortSignal.timeout(15000),
   });
   if (response.status === 401) redirect("/login?error=Please+sign+in+again");
-  const data = await response.json();
+  if (response.status === 204) return null;
+  const data = await response.json().catch(() => null);
   if (!response.ok)
     throw new Error(
-      Array.isArray(data.message)
+      Array.isArray(data?.message)
         ? data.message.join(", ")
-        : data.message || "Request failed",
+        : data?.message || `Request failed (${response.status})`,
     );
   return data;
 }

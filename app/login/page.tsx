@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from 'next/image';
 import { login } from "../actions";
 export default async function Login({
@@ -9,9 +10,9 @@ export default async function Login({
   return (
     <main className="login">
       <section className="login-story">
-        <a className="brand" href="/">
+        <Link className="brand" href="/">
           <Image src="/campus-drop-logo.png" alt="Campus Drop" width={136} height={136} style={{objectFit:'contain',borderRadius:18}}/>
-        </a>
+        </Link>
         <div>
           <p className="eyebrow">THE CAMPUS, CONNECTED</p>
           <h1>

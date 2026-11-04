@@ -1,6 +1,6 @@
 "use server";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { api, API } from "./api";
 export async function login(form: FormData) {
@@ -78,6 +78,7 @@ export async function uploadProductImage(form: FormData) {
       body: JSON.stringify({ image }),
     });
   } catch (e) {
+    unstable_rethrow(e);
     error = e instanceof Error ? e.message : "Product image upload failed";
   }
   revalidatePath("/");
@@ -96,6 +97,7 @@ export async function uploadCarouselImages(form: FormData) {
     if (urls.length > 10) throw new Error("A maximum of 10 carousel images can be active.");
     await api("/admin/settings", { method: "POST", body: JSON.stringify({ key: "carouselImages", value: JSON.stringify(urls) }) });
   } catch (caught) {
+    unstable_rethrow(caught);
     error = caught instanceof Error ? caught.message : "Carousel images could not be uploaded.";
   }
   revalidatePath("/");
@@ -107,6 +109,7 @@ export async function deleteProduct(form: FormData) {
   try {
     await api(`/admin/products/${id}`, { method: "DELETE" });
   } catch (e) {
+    unstable_rethrow(e);
     error = e instanceof Error ? e.message : "Product could not be deleted";
   }
   revalidatePath("/");
@@ -139,6 +142,7 @@ export async function createProduct(form: FormData) {
       }),
     });
   } catch (e) {
+    unstable_rethrow(e);
     error = e instanceof Error ? e.message : "Product could not be created";
   }
   revalidatePath("/");
@@ -349,6 +353,7 @@ export async function mutate(form: FormData) {
       body: JSON.stringify(spec.body),
     });
   } catch (e) {
+    unstable_rethrow(e);
     error = e instanceof Error ? e.message : "Could not save";
   }
   revalidatePath("/");
@@ -356,6 +361,3 @@ export async function mutate(form: FormData) {
     `/?tab=${spec.tab}&${error ? "error=" + encodeURIComponent(error) : "saved=1"}`,
   );
 }
-
-
-
